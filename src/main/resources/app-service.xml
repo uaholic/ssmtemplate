@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 为了支持spring的事务操作，添加tx模块 
+  添加aop模块
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd">
+  <!-- 扫描业务bean包 -->
+  <context:component-scan base-package="com.gyq.service"></context:component-scan>
+  <!-- 添加spring-jdbc提供事务管理器 
+     事务管理器作用：产生事务对象   
+  -->
+  <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+    <property name="dataSource" ref="ds"></property>
+  </bean>
+  <!-- spring jdbc提供tx通知并且可以设置通知相关属性 
+         tx:advice元素定义了spring-jdbc的事务通知对象
+           id属性： 唯一标识；
+           transaction-manager属性：引用了已定义的事务对象bean的标识
+  -->
+  <tx:advice id="tx" transaction-manager="txManager">
+    <!-- 事务属性设置 -->
+    <tx:attributes>
+       <!-- 将事务特性添加到方法上
+       tx:method元素：
+                         对应指定方法名称，并在对应方法上指定事务特性
+       备注：
+       方法名称，支持统配符 *
+        -->
+       <tx:method name="save*" propagation="REQUIRED" rollback-for="exception"/>
+       <tx:method name="update*" propagation="REQUIRED" rollback-for="exception"/>
+       <tx:method name="delete*" propagation="REQUIRED" rollback-for="exception"/>
+       <tx:method name="*" propagation="SUPPORTS" read-only="true"/>
+    </tx:attributes>
+  </tx:advice>
+  <!-- aop的编织，将事务属性和指定表达式的类中的方法个关联 -->
+  <aop:config>
+  <!-- aop:advisor事务属性对象和切面点表达式的结合 -->
+    <aop:advisor advice-ref="tx" pointcut="execution(* com.gyq.service..*.*(..))"/>
+  </aop:config>
+</beans>

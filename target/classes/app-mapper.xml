@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--1 为了支持spring的注解的方法配置，添加context验证部分 -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+	<!-- 加载属性文件 -->
+	<context:property-placeholder location="classpath:db.properties" />
+
+	<!--A： 配置druid连接池 destroy-method: 当用户关闭连接，连接池负责回收连接资源 -->
+	<bean id="ds" class="com.alibaba.druid.pool.DruidDataSource"
+		destroy-method="close">
+		<property name="driverClassName" value="${mysql.driver}" />
+		<property value="${mysql.url}" name="url"></property>
+		<property value="${mysql.username}" name="username"></property>
+		<property value="${mysql.password}" name="password"></property>
+		<property value="stat" name="filters"></property>
+		<property value="20" name="maxActive"></property>
+		<property value="1" name="initialSize"></property>
+		<property value="60000" name="maxWait"></property>
+		<property value="1" name="minIdle"></property>
+		<property value="60000" name="timeBetweenEvictionRunsMillis"></property>
+		<property value="300000" name="minEvictableIdleTimeMillis"></property>
+		<property value="SELECT 'x'" name="validationQuery"></property>
+		<property value="true" name="testWhileIdle"></property>
+		<property value="false" name="testOnBorrow"></property>
+		<property value="false" name="testOnReturn"></property>
+		<property value="true" name="poolPreparedStatements"></property>
+		<property value="20" name="maxPoolPreparedStatementPerConnectionSize"></property>
+	</bean>
+	<!--B: 通过mybatis-spring组件创建SqlSessionFactoryBean -->
+	<bean id="sf" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="ds"></property>
+		<!-- 自动扫描mybatis配置文件 -->
+		<property name="configLocation" value="classpath:mybatis-cfg.xml"></property>
+	</bean>
+	<!--C: 扫描生成sql操作接口所在的包 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.gyq.mapper" />
+		<!-- optional unless there are multiple session factories defined -->
+		<property name="sqlSessionFactoryBeanName" value="sf" />
+	</bean>
+
+
+</beans>
